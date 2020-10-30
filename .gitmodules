@@ -1,0 +1,12 @@
+[submodule "components/esp32-adafruit-096-tft"]
+	path = components/esp32-adafruit-096-tft
+	url = git@github.com:mvolk/esp32-adafruit-096-tft.git
+[submodule "components/esp32-adafruit-144-tft"]
+	path = components/esp32-adafruit-144-tft
+	url = https://github.com/mvolk/esp32-adafruit-144-tft
+[submodule "components/esp32-tft"]
+	path = components/esp32-tft
+	url = git@github.com:mvolk/esp32-tft.git
+[submodule "components/esp32-st7735r"]
+	path = components/esp32-st7735r
+	url = https://github.com/mvolk/esp32-st7735r
