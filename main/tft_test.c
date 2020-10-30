@@ -6,8 +6,24 @@
 #include <esp_err.h>
 #include <driver/spi_master.h>
 #include <tft.h>
+#include <st7735r.h>
+#include <st7789.h>
 #include <adafruit_096_tft.h>
+#include <adafruit_114_tft.h>
+#include <adafruit_130_tft.h>
+#include <adafruit_144_tft.h>
 
+
+#define ST7735R 0x80
+#define ST7789  0x40
+
+#define ADAFRUIT_096_INCH_TFT ( 0x01 | ST7735R )
+#define ADAFRUIT_114_INCH_TFT ( 0x02 | ST7789 )
+#define ADAFRUIT_130_INCH_TFT ( 0x03 | ST7789 )
+#define ADAFRUIT_144_INCH_TFT ( 0x04 | ST7735R )
+
+// Set this to switch between panels
+#define CURRENT_TFT_PANEL ADAFRUIT_114_INCH_TFT
 
 static spi_bus_config_t spi_bus_cfg;
 static tft_handle_t tft;
@@ -25,7 +41,7 @@ static void spi_init() {
     spi_bus_cfg.sclk_io_num = 14;
     spi_bus_cfg.quadwp_io_num = -1;
     spi_bus_cfg.quadhd_io_num = -1;
-    spi_bus_cfg.max_transfer_sz = 115200;
+    spi_bus_cfg.max_transfer_sz = 116000;
     esp_err_t ret = spi_bus_initialize(1, &spi_bus_cfg, 2);
     ESP_ERROR_CHECK(ret);
 }
@@ -110,9 +126,7 @@ static void tft_test_pattern_2(uint16_t * buffer)
     ESP_ERROR_CHECK(tft16_render(tft, buffer, mid_x - 9, mid_y - 9, mid_x + 9, mid_y + 9));
 }
 
-void tft_test_task(void * ignored)
-{
-    spi_init();
+void tft_init_7735r(void) {
     st7735r_params_t params;
     params.host = 1;
     params.gpio_cs = 27;
@@ -120,7 +134,42 @@ void tft_test_task(void * ignored)
     params.gpio_rst = 26;
     params.gpio_bckl = 32;
 
-    tft = adafruit_096_tft_init(&params);
+    switch (CURRENT_TFT_PANEL) {
+        case ADAFRUIT_096_INCH_TFT:
+            tft = adafruit_096_tft_init(&params);
+            break;
+        case ADAFRUIT_144_INCH_TFT:
+            tft = adafruit_144_tft_init(&params);
+            break;
+    }
+}
+
+void tft_init_7789(void) {
+    st7789_params_t params;
+    params.host = 1;
+    params.gpio_cs = 27;
+    params.gpio_dc = 25;
+    params.gpio_rst = 26;
+    params.gpio_bckl = 32;
+
+    switch (CURRENT_TFT_PANEL) {
+        case ADAFRUIT_114_INCH_TFT:
+            tft = adafruit_114_tft_init(&params);
+            break;
+        case ADAFRUIT_130_INCH_TFT:
+            tft = adafruit_130_tft_init(&params);
+            break;
+    }
+}
+
+void tft_test_task(void * ignored)
+{
+    spi_init();
+    if ((CURRENT_TFT_PANEL & ST7735R) == ST7735R) {
+        tft_init_7735r();
+    } else {
+        tft_init_7789();
+    }
 
     uint8_t width = tft->info.width;
     uint8_t height = tft->info.height;
